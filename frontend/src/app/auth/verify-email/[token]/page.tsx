@@ -34,7 +34,7 @@ export default function VerifyEmailPage() {
         }
 
         const response = await axios.get<VerificationResponse>(`/api/accounts/verify-email/${token}`);
-        
+
         setStatus('success');
         setMessage(response.data.message || 'Email verified successfully!');
 
@@ -53,7 +53,7 @@ export default function VerifyEmailPage() {
     } else {
       setStatus('error');
       setMessage('No verification token provided.');
-      setErrorDetails('Ensure you clicked the correct link from your email.');
+      setErrorDetails('Please Ensure you clicked the correct link from your email.');
     }
   }, [params.token, router]);
 
