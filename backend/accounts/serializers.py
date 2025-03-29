@@ -76,3 +76,16 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
             'has_completed_onboarding'
         ]
         read_only_fields = ['has_completed_onboarding']
+
+class MeSerializer(serializers.ModelSerializer):
+    has_completed_onboarding = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'has_completed_onboarding')
+
+    def get_has_completed_onboarding(self, obj):
+        try:
+            return obj.preferences.has_completed_onboarding
+        except UserPreferences.DoesNotExist:
+            return False

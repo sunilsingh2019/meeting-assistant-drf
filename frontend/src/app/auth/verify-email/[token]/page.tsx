@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from '@/lib/axios';
@@ -17,18 +17,24 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState('Verifying your email...');
   const [errorDetails, setErrorDetails] = useState<string>('');
 
+  // Prevent multiple API calls
+  const hasFetched = useRef(false);
+
   useEffect(() => {
     const verifyEmail = async () => {
+      if (hasFetched.current) return; // Prevent duplicate API calls
+      hasFetched.current = true; // Mark request as initiated
+
       try {
         // Get the token from the URL and ensure it's properly formatted
         const rawToken = typeof params.token === 'string' ? params.token : params.token[0];
         console.log('Raw token from params:', rawToken); // Debug log
-        
+
         // Clean the token - remove any URL encoding and trailing slashes
         const token = decodeURIComponent(rawToken).replace(/\/$/, '');
         console.log('Cleaned token:', token); // Debug log
         console.log('Token length:', token.length); // Debug log
-        
+
         // Ensure token is not undefined or empty
         if (!token) {
           throw new Error('No verification token provided');
@@ -40,14 +46,14 @@ export default function VerifyEmailPage() {
         }
 
         console.log('Making verification request with token:', token); // Debug log
-        
+
         // Make the verification request - ensure no trailing slash
         const response = await axios.get<VerificationResponse>(`/api/accounts/verify-email/${token}`);
         console.log('Verification API response:', response.data); // Debug log
-        
+
         setStatus('success');
         setMessage(response.data.message || 'Email verified successfully! You can now sign in.');
-        
+
         // Redirect to sign in after success
         setTimeout(() => {
           router.push('/auth/signin');
@@ -59,13 +65,13 @@ export default function VerifyEmailPage() {
           status: error.response?.status,
           token: params.token
         });
-        
+
         setStatus('error');
         const errorMessage = error.response?.data?.error || 
                            error.message || 
                            'Failed to verify email. Please try again or contact support.';
         setMessage(errorMessage);
-        
+
         // Set detailed error message for debugging
         setErrorDetails(
           error.response?.data?.error || 
@@ -146,4 +152,4 @@ export default function VerifyEmailPage() {
       </div>
     </div>
   );
-} 
+}

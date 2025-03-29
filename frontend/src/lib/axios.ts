@@ -1,4 +1,5 @@
 import axios from 'axios';
+export const dockerBackendUrl = 'http://backend:8000'; // TODO: Need to place this in env and also need to be used only in local development as nextjs server side cannot request to the localhost when running in docker
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 

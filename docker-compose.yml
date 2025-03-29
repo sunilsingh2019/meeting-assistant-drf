@@ -66,6 +66,8 @@ services:
       - NEXT_PUBLIC_MICROSOFT_TENANT_ID=consumers
       - NEXT_PUBLIC_MICROSOFT_REDIRECT_URI=http://localhost:3000/auth/microsoft/callback
       - NEXT_PUBLIC_MICROSOFT_SCOPE=openid profile email offline_access User.Read
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=22230288681-hcv9cs7uqe3273419fpiiokrvlj42a2o.apps.googleusercontent.com
+      - NEXT_PUBLIC_GOOGLE_CLIENT_SECRET=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
     depends_on:
       - backend
     networks:

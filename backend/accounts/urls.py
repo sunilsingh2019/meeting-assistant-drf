@@ -3,7 +3,7 @@ from .views import (
     RegisterView, LoginView, LogoutView, ChangePasswordView,
     VerifyEmailView, ResendVerificationEmailView,
     PasswordResetRequestView, PasswordResetConfirmView,
-    UserPreferencesView, CompleteOnboardingView
+    UserPreferencesView, CompleteOnboardingView, MeView
 )
 from .google_auth import GoogleAuthView
 from .microsoft_auth import MicrosoftAuthView
@@ -12,6 +12,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('me/', MeView.as_view(), name='me'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('verify-email/<str:token>/', VerifyEmailView.as_view(), name='verify-email'),
     path('resend-verification-email/', ResendVerificationEmailView.as_view(), name='resend-verification-email'),

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-
+import { dockerBackendUrl } from '@/lib/axios';
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get('token');
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth/');
@@ -30,13 +30,13 @@ export async function middleware(request: NextRequest) {
   // If authenticated, check onboarding status for dashboard access
   if (token && (isDashboardPage || isOnboardingPage)) {
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/me/', {
+      const response = await fetch(`${dockerBackendUrl}/api/accounts/me`, {
         headers: {
           'Authorization': `Bearer ${token.value}`,
         },
       });
       const userData = await response.json();
-
+      console.log('User data:', userData); // Debug log
       // If onboarding not completed and not on onboarding page, redirect to onboarding
       if (!userData.has_completed_onboarding && !isOnboardingPage) {
         return NextResponse.redirect(new URL('/onboarding', request.url));

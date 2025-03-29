@@ -27,6 +27,18 @@ class User(AbstractUser):
         except cls.DoesNotExist:
             return None
 
+    def generate_verification_token(self):
+        """
+        Generate a verification token and save it to the user's record.
+        
+        Returns:
+            str: The generated verification token
+        """
+        token = get_random_string(64)
+        self.email_verification_token = token
+        self.save(update_fields=['email_verification_token'])
+        return token
+
     class Meta:
         ordering = ['-date_joined']
 
