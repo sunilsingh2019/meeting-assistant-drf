@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from '@/lib/axios';
@@ -17,60 +17,34 @@ export default function VerifyEmailPage() {
   const [message, setMessage] = useState('Verifying your email...');
   const [errorDetails, setErrorDetails] = useState<string>('');
 
+  // Prevent multiple API calls
+  const hasFetched = useRef(false);
+
   useEffect(() => {
     const verifyEmail = async () => {
+      if (hasFetched.current) return; // Prevent duplicate API calls
+      hasFetched.current = true; // Mark request as initiated
+
       try {
-        // Get the token from the URL and ensure it's properly formatted
         const rawToken = typeof params.token === 'string' ? params.token : params.token[0];
-        console.log('Raw token from params:', rawToken); // Debug log
-        
-        // Clean the token - remove any URL encoding and trailing slashes
         const token = decodeURIComponent(rawToken).replace(/\/$/, '');
-        console.log('Cleaned token:', token); // Debug log
-        console.log('Token length:', token.length); // Debug log
-        
-        // Ensure token is not undefined or empty
-        if (!token) {
-          throw new Error('No verification token provided');
+
+        if (!token || token.length !== 64) {
+          throw new Error('Invalid verification token.');
         }
 
-        // Validate token format
-        if (token.length !== 64) {
-          throw new Error(`Invalid verification token format (length: ${token.length}, expected: 64)`);
-        }
-
-        console.log('Making verification request with token:', token); // Debug log
-        
-        // Make the verification request - ensure no trailing slash
         const response = await axios.get<VerificationResponse>(`/api/accounts/verify-email/${token}`);
-        console.log('Verification API response:', response.data); // Debug log
         
         setStatus('success');
-        setMessage(response.data.message || 'Email verified successfully! You can now sign in.');
-        
-        // Redirect to sign in after success
+        setMessage(response.data.message || 'Email verified successfully!');
+
         setTimeout(() => {
           router.push('/auth/signin');
         }, 3000);
       } catch (error: any) {
-        console.error('Verification error details:', {
-          error,
-          response: error.response?.data,
-          status: error.response?.status,
-          token: params.token
-        });
-        
         setStatus('error');
-        const errorMessage = error.response?.data?.error || 
-                           error.message || 
-                           'Failed to verify email. Please try again or contact support.';
-        setMessage(errorMessage);
-        
-        // Set detailed error message for debugging
-        setErrorDetails(
-          error.response?.data?.error || 
-          'If this error persists, please try registering again or contact support.'
-        );
+        setMessage(error.response?.data?.error || 'Failed to verify email.');
+        setErrorDetails('Please try again or contact support.');
       }
     };
 
@@ -79,7 +53,7 @@ export default function VerifyEmailPage() {
     } else {
       setStatus('error');
       setMessage('No verification token provided.');
-      setErrorDetails('Please ensure you clicked the correct link from your email.');
+      setErrorDetails('Ensure you clicked the correct link from your email.');
     }
   }, [params.token, router]);
 
@@ -87,9 +61,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Email Verification
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Email Verification</h2>
           <div className="mt-4">
             {status === 'verifying' && (
               <div className="text-center">
@@ -105,13 +77,8 @@ export default function VerifyEmailPage() {
                   </svg>
                 </div>
                 <p className="mt-4 text-lg text-green-600">{message}</p>
-                <p className="mt-2 text-sm text-gray-500">
-                  Redirecting you to sign in...
-                </p>
-                <Link
-                  href="/auth/signin"
-                  className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                >
+                <p className="mt-2 text-sm text-gray-500">Redirecting you to sign in...</p>
+                <Link href="/auth/signin" className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
                   Click here if you're not redirected
                 </Link>
               </div>
@@ -126,16 +93,10 @@ export default function VerifyEmailPage() {
                 <p className="mt-4 text-lg text-red-600">{message}</p>
                 <p className="mt-2 text-sm text-gray-500">{errorDetails}</p>
                 <div className="mt-6 space-y-4">
-                  <Link
-                    href="/auth/register"
-                    className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                  >
+                  <Link href="/auth/register" className="block text-sm font-medium text-indigo-600 hover:text-indigo-500">
                     Register with a Different Email
                   </Link>
-                  <Link
-                    href="/auth/verify"
-                    className="block text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                  >
+                  <Link href="/auth/verify" className="block text-sm font-medium text-indigo-600 hover:text-indigo-500">
                     Resend Verification Email
                   </Link>
                 </div>
@@ -146,4 +107,4 @@ export default function VerifyEmailPage() {
       </div>
     </div>
   );
-} 
+}

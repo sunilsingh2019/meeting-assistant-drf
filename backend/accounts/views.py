@@ -12,7 +12,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import (
     UserSerializer, LoginSerializer, ChangePasswordSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
-    UserPreferencesSerializer
+    UserPreferencesSerializer, MeSerializer
 )
 from .models import UserPreferences
 from django.db import models
@@ -39,13 +39,8 @@ class RegisterView(APIView):
             
             # Generate verification token
             print("\nGenerating verification token...")
-            token = get_random_string(64)
-            user.email_verification_token = token
+            token = user.generate_verification_token()
             print(f"Generated token: {token}")
-            
-            # Save the user with the token
-            user.save(update_fields=['email_verification_token'])
-            print(f"Saved user with token: {user.email_verification_token}")
             
             # Generate verification URL
             verification_url = f"{settings.FRONTEND_URL}/auth/verify-email/{token}"
@@ -193,8 +188,10 @@ class ResendVerificationEmailView(APIView):
                     'error': 'Email already verified'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            user.generate_verification_token()
-            verification_url = f"{settings.FRONTEND_URL}/auth/verify-email/{user.email_verification_token}"
+            # Generate verification token
+            token = user.generate_verification_token()
+            
+            verification_url = f"{settings.FRONTEND_URL}/auth/verify-email/{token}"
             
             context = {
                 'user': user,
@@ -406,3 +403,11 @@ class CompleteOnboardingView(APIView):
         preferences.has_completed_onboarding = True
         preferences.save()
         return Response({'status': 'onboarding completed'})
+
+class MeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MeSerializer
+
+    def get(self, request):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data)

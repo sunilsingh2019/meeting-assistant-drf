@@ -1,5 +1,7 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from '../lib/axios';
+import axios, { dockerBackendUrl } from '../lib/axios';
 
 interface AuthResponse {
   token: string;
@@ -56,7 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get<AuthResponse['user']>('/api/accounts/me/');
+      const response = await axios.get<AuthResponse['user']>(`${dockerBackendUrl}/api/accounts/me/`);
+      console.log('User data:', response.data);
       setUser(response.data);
       setHasCompletedOnboarding(response.data.has_completed_onboarding);
     } catch (error) {
